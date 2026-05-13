@@ -1,6 +1,6 @@
 # MBTI 진로 추천 스트림릿 코드
 
-python
+
 import streamlit as st
 
 st.set_page_config(page_title="MBTI 진로 추천", page_icon="💼", layout="centered")
