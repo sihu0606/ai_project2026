@@ -5,7 +5,7 @@ b=st.selectbox('좋아하는 음식을 선택핫헤요',['최민강','이유준'
 if st.button('인사말 생성'):
   st.write(a+'님! 안녕하세요')
   st.info('반갑습니다')
-  st.warning(b+'음식을 좋아하시는군요')
+  st.warning(b+'을 좋아하시는군요')
   st.error('잘 부탁해요!')
   st.balloons()
   
