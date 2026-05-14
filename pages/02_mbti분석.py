@@ -3,64 +3,61 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 
 # 페이지 설정
 st.set_page_config(
-    page_title="Countries MBTI Dashboard",
+    page_title="MBTI Countries Dashboard",
     page_icon="🌍",
     layout="wide"
 )
 
 # 제목
-st.title("🌍 Countries MBTI Dashboard")
-st.markdown("국가별 MBTI 비율을 인터랙티브하게 확인해보세요.")
+st.title("🌍 MBTI Countries Dashboard")
+st.markdown("MBTI를 선택하면 국가별 비율을 확인할 수 있습니다.")
 
-# 데이터 불러오기
+# 데이터 로드
 @st.cache_data
 def load_data():
-    df = pd.read_csv("countriesMBTI_16types.csv")
-    return df
+    return pd.read_csv("countriesMBTI_16types.csv")
 
 df = load_data()
 
-# 국가 선택
-countries = sorted(df["Country"].unique())
+# MBTI 컬럼 추출
+mbti_types = [col for col in df.columns if col != "Country"]
 
-selected_country = st.selectbox(
-    "국가를 선택하세요",
-    countries
+# MBTI 선택
+selected_mbti = st.selectbox(
+    "MBTI를 선택하세요",
+    sorted(mbti_types)
 )
 
-# 선택된 국가 데이터
-country_data = df[df["Country"] == selected_country].iloc[0]
+# 선택한 MBTI 기준 데이터 생성
+mbti_df = df[["Country", selected_mbti]].copy()
 
-# MBTI 컬럼 추출
-mbti_cols = [col for col in df.columns if col != "Country"]
-
-# 데이터 정리
-mbti_values = pd.DataFrame({
-    "MBTI": mbti_cols,
-    "Ratio": [country_data[col] for col in mbti_cols]
-})
+# 컬럼명 변경
+mbti_df.columns = ["Country", "Ratio"]
 
 # 정렬
-mbti_values = mbti_values.sort_values(
+mbti_df = mbti_df.sort_values(
     by="Ratio",
     ascending=False
 ).reset_index(drop=True)
 
-# 색상 지정
+# TOP 국가
+top_country = mbti_df.iloc[0]
+
+# 색상 설정
 colors = []
 
-max_value = mbti_values["Ratio"].max()
+max_ratio = mbti_df["Ratio"].max()
 
-for i, row in mbti_values.iterrows():
-    if row["Ratio"] == max_value:
-        colors.append("#ff3b30")  # 빨간색
+for i, row in mbti_df.iterrows():
+
+    if row["Ratio"] == max_ratio:
+        colors.append("#ff3b30")  # 1등 빨간색
     else:
-        # 파란색 그라데이션 느낌
-        intensity = 255 - (i * 8)
+        # 파란색 그라데이션
+        intensity = 255 - int(i * 1.2)
         intensity = max(80, intensity)
 
         colors.append(
@@ -72,12 +69,12 @@ fig = go.Figure()
 
 fig.add_trace(
     go.Bar(
-        x=mbti_values["MBTI"],
-        y=mbti_values["Ratio"],
+        x=mbti_df["Country"],
+        y=mbti_df["Ratio"],
         marker_color=colors,
         text=[
             f"{v*100:.1f}%"
-            for v in mbti_values["Ratio"]
+            for v in mbti_df["Ratio"]
         ],
         textposition="outside",
         hovertemplate=
@@ -86,62 +83,68 @@ fig.add_trace(
     )
 )
 
-# 레이아웃
+# 레이아웃 설정
 fig.update_layout(
-    title=f"{selected_country} MBTI Distribution",
+    title=f"{selected_mbti} Distribution by Country",
     template="plotly_white",
-    height=650,
-    xaxis_title="MBTI",
+    height=700,
+    xaxis_title="Country",
     yaxis_title="Ratio",
-    font=dict(
-        family="Arial",
-        size=14
-    ),
-    title_font=dict(
-        size=26
-    ),
     showlegend=False,
     margin=dict(
         t=80,
         l=40,
         r=40,
-        b=40
+        b=120
+    ),
+    font=dict(
+        size=13
     )
 )
 
-# Y축 퍼센트 표시
+# Y축 퍼센트
 fig.update_yaxes(
     tickformat=".0%"
 )
 
-# 그래프 출력
+# X축 회전
+fig.update_xaxes(
+    tickangle=-45
+)
+
+# 출력
 st.plotly_chart(
     fig,
     use_container_width=True
 )
 
-# 추가 정보
-top_mbti = mbti_values.iloc[0]
-
+# TOP 국가 표시
 st.markdown("---")
 
 col1, col2 = st.columns(2)
 
 with col1:
     st.metric(
-        "가장 높은 MBTI",
-        top_mbti["MBTI"]
+        "가장 높은 국가",
+        top_country["Country"]
     )
 
 with col2:
     st.metric(
         "비율",
-        f"{top_mbti['Ratio']*100:.2f}%"
+        f"{top_country['Ratio']*100:.2f}%"
     )
 
-# 데이터 테이블
-with st.expander("데이터 보기"):
-    st.dataframe(
-        mbti_values,
-        use_container_width=True
-    )
+# TOP 10 테이블
+st.subheader(f"🏆 TOP 10 Countries for {selected_mbti}")
+
+top10 = mbti_df.head(10).copy()
+
+top10["Ratio"] = (
+    top10["Ratio"] * 100
+).round(2).astype(str) + "%"
+
+st.dataframe(
+    top10,
+    use_container_width=True
+)
