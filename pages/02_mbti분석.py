@@ -11,10 +11,13 @@ st.set_page_config(
     layout="wide"
 )
 
+# 제목
 st.title("🌍 MBTI Countries Dashboard")
-st.markdown("MBTI를 선택하면 상위 10개 국가 비율을 확인할 수 있습니다.")
+st.markdown(
+    "MBTI를 선택하면 상위 10개 국가와 전체 국가 데이터를 확인할 수 있습니다."
+)
 
-# 데이터 로드
+# 데이터 불러오기
 @st.cache_data
 def load_data():
     return pd.read_csv("countriesMBTI_16types.csv")
@@ -35,23 +38,25 @@ mbti_df = df[["Country", selected_mbti]].copy()
 
 mbti_df.columns = ["Country", "Ratio"]
 
-# TOP 10만 선택
+# 정렬
 mbti_df = (
     mbti_df
     .sort_values(by="Ratio", ascending=False)
-    .head(10)
     .reset_index(drop=True)
 )
 
+# TOP 10 데이터
+top10_df = mbti_df.head(10)
+
 # 1위 국가
-top_country = mbti_df.iloc[0]
+top_country = top10_df.iloc[0]
 
 # 색상 설정
 colors = []
 
-max_ratio = mbti_df["Ratio"].max()
+max_ratio = top10_df["Ratio"].max()
 
-for i, row in mbti_df.iterrows():
+for i, row in top10_df.iterrows():
 
     if row["Ratio"] == max_ratio:
         colors.append("#ff3b30")  # 빨간색
@@ -69,12 +74,12 @@ fig = go.Figure()
 
 fig.add_trace(
     go.Bar(
-        x=mbti_df["Country"],
-        y=mbti_df["Ratio"],
+        x=top10_df["Country"],
+        y=top10_df["Ratio"],
         marker_color=colors,
         text=[
             f"{v*100:.1f}%"
-            for v in mbti_df["Ratio"]
+            for v in top10_df["Ratio"]
         ],
         textposition="outside",
         hovertemplate=
@@ -83,9 +88,9 @@ fig.add_trace(
     )
 )
 
-# 레이아웃 설정
+# 그래프 레이아웃
 fig.update_layout(
-    title=f"Top 10 Countries for {selected_mbti}",
+    title=f"🏆 Top 10 Countries for {selected_mbti}",
     template="plotly_white",
     height=650,
     showlegend=False,
@@ -102,7 +107,7 @@ fig.update_layout(
     )
 )
 
-# 퍼센트 표시
+# Y축 퍼센트 표시
 fig.update_yaxes(
     tickformat=".0%"
 )
@@ -118,7 +123,7 @@ st.plotly_chart(
     use_container_width=True
 )
 
-# 최고 국가 정보
+# 1위 국가 정보
 st.markdown("---")
 
 col1, col2 = st.columns(2)
@@ -135,17 +140,22 @@ with col2:
         f"{top_country['Ratio']*100:.2f}%"
     )
 
-# 데이터 테이블
-st.subheader("📋 TOP 10 데이터")
+# 전체 데이터 섹션
+st.markdown("---")
 
-table_df = mbti_df.copy()
+st.subheader(f"🌎 All Countries for {selected_mbti}")
 
-table_df["Ratio"] = (
-    table_df["Ratio"] * 100
+# 퍼센트 변환
+full_table = mbti_df.copy()
+
+full_table["Ratio"] = (
+    full_table["Ratio"] * 100
 ).round(2).astype(str) + "%"
 
+# 전체 데이터 표시
 st.dataframe(
-    table_df,
+    full_table,
     use_container_width=True,
-    hide_index=True
+    hide_index=True,
+    height=700
 )
