@@ -44,6 +44,17 @@ places = [
     },
 ]
 
+# 기본 설명
+info_text = """
+📍 관광지를 클릭하면  
+🚇 가까운 지하철역과  
+🎈 놀거리가 지도 하단에 표시됩니다.
+"""
+
+# 세션 상태
+if "info_text" not in st.session_state:
+    st.session_state.info_text = info_text
+
 # 지도 생성
 m = folium.Map(
     location=[37.5665, 126.9780],
@@ -53,40 +64,60 @@ m = folium.Map(
 # 마커 추가
 for place in places:
 
-    popup_text = f"""
-    📍 {place['name']}
-
-    🚇 가까운 역:
-    {place['subway']}
-
-    🎈 놀거리:
-    {place['summary']}
+    popup_html = f"""
+    <b>{place['name']}</b>
     """
 
     folium.Marker(
         [place["lat"], place["lon"]],
-        popup=popup_text,
+        popup=popup_html,
         tooltip=place["name"]
     ).add_to(m)
+
+# 하단 고정 설명 박스 HTML
+bottom_html = f"""
+<div style="
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    z-index:9999;
+    font-size:16px;
+    background-color: rgba(0,0,0,0.75);
+    color:white;
+    padding:15px;
+    border-radius:12px;
+    text-align:center;
+">
+{st.session_state.info_text}
+</div>
+"""
+
+m.get_root().html.add_child(folium.Element(bottom_html))
 
 # 지도 출력
 map_data = st_folium(
     m,
     width=1000,
-    height=600
+    height=650
 )
 
-# 하단 정보
-st.markdown("---")
-st.subheader("📌 관광지 정보")
-
+# 클릭 이벤트 처리
 clicked = None
 
 if map_data:
-    clicked = map_data.get("last_object_clicked_popup")
+    clicked = map_data.get("last_object_clicked_tooltip")
 
 if clicked:
-    st.success(clicked)
-else:
-    st.info("지도 마커를 클릭해보세요.")
-    
+
+    for place in places:
+        if place["name"] == clicked:
+
+            st.session_state.info_text = f"""
+            📍 <b>{place['name']}</b><br>
+            🚇 {place['subway']}<br>
+            🎈 {place['summary']}
+            """
+
+            st.rerun()
