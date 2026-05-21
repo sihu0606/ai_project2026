@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # -----------------------------
-# 한글 깨짐 방지
+# 한글 설정
 # -----------------------------
 plt.rcParams['font.family'] = 'DejaVu Sans'
 plt.rcParams['axes.unicode_minus'] = False
@@ -14,19 +14,19 @@ plt.rcParams['axes.unicode_minus'] = False
 st.title("의정부 동네별 인구수")
 
 # -----------------------------
-# CSV 읽기
+# CSV 불러오기
 # -----------------------------
-df = pd.read_csv("population.csv")
+try:
+    df = pd.read_csv("population.csv", encoding="cp949")
+except:
+    df = pd.read_csv("population.csv", encoding="euc-kr")
 
-# 컬럼명 공백 제거
+# 컬럼 공백 제거
 df.columns = df.columns.str.strip()
 
 # -----------------------------
-# 실제 컬럼명 확인
+# 컬럼명
 # -----------------------------
-st.write("컬럼명:", df.columns.tolist())
-
-# 아래 컬럼명을 CSV에 맞게 수정
 dong_col = "행정동"
 age_col = "연령"
 pop_col = "인구수"
@@ -46,11 +46,11 @@ selected_dong = st.selectbox(
 # -----------------------------
 filtered_df = df[df[dong_col] == selected_dong]
 
-# 나이순 정렬
+# 정렬
 filtered_df = filtered_df.sort_values(by=age_col)
 
 # -----------------------------
-# 그래프 생성
+# 그래프
 # -----------------------------
 fig, ax = plt.subplots(figsize=(12, 6))
 
