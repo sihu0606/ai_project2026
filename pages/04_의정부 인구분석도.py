@@ -16,41 +16,31 @@ st.title("의정부 동네별 인구수")
 # -----------------------------
 # CSV 읽기
 # -----------------------------
-try:
-    df = pd.read_csv("population.csv", encoding="cp949")
-except:
-    df = pd.read_csv("population.csv", encoding="euc-kr")
-
-# 컬럼명 공백 제거
-df.columns = df.columns.str.strip()
-
-# 실제 컬럼명 출력
-st.write("현재 컬럼명:", df.columns.tolist())
+df = pd.read_csv("population.csv", encoding="cp949")
 
 # -----------------------------
-# 컬럼 자동 찾기
+# 필요한 컬럼
 # -----------------------------
-dong_col = None
-age_col = None
-pop_col = None
+dong_col = "행정구역"
 
-for col in df.columns:
-    if "동" in col:
-        dong_col = col
-    elif "나이" in col or "연령" in col:
-        age_col = col
-    elif "인구" in col:
-        pop_col = col
-
-# 컬럼 확인
-if dong_col is None or age_col is None or pop_col is None:
-    st.error("CSV 컬럼명을 찾을 수 없습니다.")
-    st.stop()
+age_columns = [
+    "2026년04월_거주자_0~9세",
+    "2026년04월_거주자_10~19세",
+    "2026년04월_거주자_20~29세",
+    "2026년04월_거주자_30~39세",
+    "2026년04월_거주자_40~49세",
+    "2026년04월_거주자_50~59세",
+    "2026년04월_거주자_60~69세",
+    "2026년04월_거주자_70~79세",
+    "2026년04월_거주자_80~89세",
+    "2026년04월_거주자_90~99세",
+    "2026년04월_거주자_100세 이상"
+]
 
 # -----------------------------
-# 동네 선택
+# 동네 목록 만들기
 # -----------------------------
-dong_list = sorted(df[dong_col].unique())
+dong_list = df[dong_col].tolist()
 
 selected_dong = st.selectbox(
     "동네를 선택하세요",
@@ -58,18 +48,31 @@ selected_dong = st.selectbox(
 )
 
 # -----------------------------
-# 데이터 필터링
+# 선택된 동 데이터
 # -----------------------------
-filtered_df = df[df[dong_col] == selected_dong]
+selected_row = df[df[dong_col] == selected_dong].iloc[0]
 
-# 숫자 변환
-filtered_df[pop_col] = pd.to_numeric(
-    filtered_df[pop_col],
-    errors='coerce'
-)
+# 나이 labels
+age_labels = [
+    "0~9세",
+    "10~19세",
+    "20~29세",
+    "30~39세",
+    "40~49세",
+    "50~59세",
+    "60~69세",
+    "70~79세",
+    "80~89세",
+    "90~99세",
+    "100세 이상"
+]
 
-# 정렬
-filtered_df = filtered_df.sort_values(by=age_col)
+# 인구 데이터
+population_values = []
+
+for col in age_columns:
+    value = str(selected_row[col]).replace(",", "")
+    population_values.append(int(value))
 
 # -----------------------------
 # 그래프 생성
@@ -82,8 +85,8 @@ ax.set_facecolor("lightgray")
 
 # 빨간색 꺾은선 그래프
 ax.plot(
-    filtered_df[age_col],
-    filtered_df[pop_col],
+    age_labels,
+    population_values,
     color="red",
     marker="o",
     linewidth=2
@@ -93,9 +96,6 @@ ax.plot(
 ax.set_title("의정부 동네별 인구수", fontsize=18)
 ax.set_xlabel("나이")
 ax.set_ylabel("인구수")
-
-# x축 회전
-plt.xticks(rotation=45)
 
 # 격자
 ax.grid(True)
