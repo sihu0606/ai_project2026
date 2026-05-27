@@ -2,20 +2,27 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-# -----------------------------
-# 제목
-# -----------------------------
+# =====================================================
+# 페이지 제목
+# =====================================================
+
 st.title("의정부 동네별 인구수")
 
-# -----------------------------
+# =====================================================
 # CSV 읽기
-# -----------------------------
+# =====================================================
+
 df = pd.read_csv("population.csv", encoding="cp949")
 
-# -----------------------------
-# 컬럼 설정
-# -----------------------------
-dong_col = "행정구역"
+# =====================================================
+# 전체 합계 제거
+# =====================================================
+
+df = df[df["행정구역"] != "경기도 의정부시"]
+
+# =====================================================
+# 연령 컬럼 설정
+# =====================================================
 
 age_columns = {
     "0~9세": "2026년04월_거주자_0~9세",
@@ -32,41 +39,58 @@ age_columns = {
 }
 
 # =====================================================
+# 숫자 변환
+# =====================================================
+
+for col in age_columns.values():
+    df[col] = (
+        df[col]
+        .astype(str)
+        .str.replace(",", "")
+        .astype(int)
+    )
+
+# =====================================================
 # 동네별 연령 그래프
 # =====================================================
 
 st.header("동네별 연령 인구 그래프")
 
-dong_list = df[dong_col].tolist()
+dong_list = sorted(df["행정구역"].unique())
 
 selected_dong = st.selectbox(
     "동네를 선택하세요",
     dong_list
 )
 
-selected_row = df[df[dong_col] == selected_dong].iloc[0]
+selected_row = df[df["행정구역"] == selected_dong].iloc[0]
 
 age_labels = list(age_columns.keys())
 
 population_values = []
 
 for col in age_columns.values():
-    value = str(selected_row[col]).replace(",", "")
-    population_values.append(int(value))
+    population_values.append(selected_row[col])
 
-# Plotly 그래프
+# Plotly 그래프 생성
+
 fig1 = go.Figure()
 
 fig1.add_trace(
     go.Scatter(
         x=age_labels,
         y=population_values,
-        mode='lines+markers',
-        line=dict(color='red', width=3),
-        marker=dict(size=10),
+        mode="lines+markers",
+        line=dict(
+            color="red",
+            width=3
+        ),
+        marker=dict(
+            size=10
+        ),
         hovertemplate=
         "<b>age</b>: %{x}<br>" +
-        "<b>population</b>: %{y}<extra></extra>"
+        "<b>population</b>: %{y}명<extra></extra>"
     )
 )
 
@@ -76,10 +100,15 @@ fig1.update_layout(
     yaxis_title="population",
     plot_bgcolor="lightgray",
     paper_bgcolor="lightgray",
-    font=dict(color="black")
+    font=dict(
+        size=14
+    )
 )
 
-st.plotly_chart(fig1, use_container_width=True)
+st.plotly_chart(
+    fig1,
+    use_container_width=True
+)
 
 # =====================================================
 # 연령대별 TOP5 행정구역 그래프
@@ -94,33 +123,35 @@ selected_age = st.selectbox(
 
 selected_column = age_columns[selected_age]
 
-# 숫자 변환
-df[selected_column] = (
-    df[selected_column]
-    .astype(str)
-    .str.replace(",", "")
-    .astype(int)
+# TOP5 추출
+
+top5_df = (
+    df.sort_values(
+        by=selected_column,
+        ascending=False
+    )
+    .head(5)
 )
 
-# TOP5 추출
-top5_df = df.sort_values(
-    by=selected_column,
-    ascending=False
-).head(5)
+# Plotly 그래프 생성
 
-# Plotly 그래프
 fig2 = go.Figure()
 
 fig2.add_trace(
     go.Scatter(
-        x=top5_df[dong_col],
+        x=top5_df["행정구역"],
         y=top5_df[selected_column],
-        mode='lines+markers',
-        line=dict(color='red', width=3),
-        marker=dict(size=10),
+        mode="lines+markers",
+        line=dict(
+            color="red",
+            width=3
+        ),
+        marker=dict(
+            size=10
+        ),
         hovertemplate=
         "<b>행정구역</b>: %{x}<br>" +
-        "<b>population</b>: %{y}<extra></extra>"
+        "<b>population</b>: %{y}명<extra></extra>"
     )
 )
 
@@ -130,7 +161,12 @@ fig2.update_layout(
     yaxis_title="population",
     plot_bgcolor="lightgray",
     paper_bgcolor="lightgray",
-    font=dict(color="black")
+    font=dict(
+        size=14
+    )
 )
 
-st.plotly_chart(fig2, use_container_width=True)
+st.plotly_chart(
+    fig2,
+    use_container_width=True
+)
