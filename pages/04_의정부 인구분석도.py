@@ -1,12 +1,6 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-
-# -----------------------------
-# 한글 설정
-# -----------------------------
-plt.rcParams['font.family'] = 'NanumGothic'
-plt.rcParams['axes.unicode_minus'] = False
+import plotly.graph_objects as go
 
 # -----------------------------
 # 제목
@@ -38,7 +32,7 @@ age_columns = {
 }
 
 # =====================================================
-# 기존 기능 : 동네 선택 후 연령별 그래프
+# 동네별 연령 그래프
 # =====================================================
 
 st.header("동네별 연령 인구 그래프")
@@ -60,32 +54,35 @@ for col in age_columns.values():
     value = str(selected_row[col]).replace(",", "")
     population_values.append(int(value))
 
-# 그래프 생성
-fig1, ax1 = plt.subplots(figsize=(12, 6))
+# Plotly 그래프
+fig1 = go.Figure()
 
-# 회색 배경
-fig1.patch.set_facecolor("lightgray")
-ax1.set_facecolor("lightgray")
-
-# 빨간색 꺾은선 그래프
-ax1.plot(
-    age_labels,
-    population_values,
-    color="red",
-    marker="o",
-    linewidth=2
+fig1.add_trace(
+    go.Scatter(
+        x=age_labels,
+        y=population_values,
+        mode='lines+markers',
+        line=dict(color='red', width=3),
+        marker=dict(size=10),
+        hovertemplate=
+        "<b>age</b>: %{x}<br>" +
+        "<b>population</b>: %{y}<extra></extra>"
+    )
 )
 
-ax1.set_title("의정부 동네별 인구수", fontsize=18)
-ax1.set_xlabel("나이")
-ax1.set_ylabel("인구수")
+fig1.update_layout(
+    title="의정부 동네별 인구수",
+    xaxis_title="age",
+    yaxis_title="population",
+    plot_bgcolor="lightgray",
+    paper_bgcolor="lightgray",
+    font=dict(color="black")
+)
 
-ax1.grid(True)
-
-st.pyplot(fig1)
+st.plotly_chart(fig1, use_container_width=True)
 
 # =====================================================
-# 추가 기능 : 연령대 선택 후 TOP5 행정구역 그래프
+# 연령대별 TOP5 행정구역 그래프
 # =====================================================
 
 st.header("연령대별 인구 TOP5 행정구역")
@@ -111,30 +108,29 @@ top5_df = df.sort_values(
     ascending=False
 ).head(5)
 
-# 그래프 데이터
-top5_dongs = top5_df[dong_col]
-top5_values = top5_df[selected_column]
+# Plotly 그래프
+fig2 = go.Figure()
 
-# 그래프 생성
-fig2, ax2 = plt.subplots(figsize=(12, 6))
-
-# 회색 배경
-fig2.patch.set_facecolor("lightgray")
-ax2.set_facecolor("lightgray")
-
-# 빨간색 꺾은선 그래프
-ax2.plot(
-    top5_dongs,
-    top5_values,
-    color="red",
-    marker="o",
-    linewidth=2
+fig2.add_trace(
+    go.Scatter(
+        x=top5_df[dong_col],
+        y=top5_df[selected_column],
+        mode='lines+markers',
+        line=dict(color='red', width=3),
+        marker=dict(size=10),
+        hovertemplate=
+        "<b>행정구역</b>: %{x}<br>" +
+        "<b>population</b>: %{y}<extra></extra>"
+    )
 )
 
-ax2.set_title(f"{selected_age} 인구 TOP5 행정구역", fontsize=18)
-ax2.set_xlabel("행정구역")
-ax2.set_ylabel("인구수")
+fig2.update_layout(
+    title=f"{selected_age} 인구 TOP5 행정구역",
+    xaxis_title="age",
+    yaxis_title="population",
+    plot_bgcolor="lightgray",
+    paper_bgcolor="lightgray",
+    font=dict(color="black")
+)
 
-ax2.grid(True)
-
-st.pyplot(fig2)
+st.plotly_chart(fig2, use_container_width=True)
