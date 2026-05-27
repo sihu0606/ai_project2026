@@ -4,3 +4,6 @@ streamlit-folium==0.25.0
 streamlit
 pandas
 matplotlib
+streamlit
+pandas
+plotly
