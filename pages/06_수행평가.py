@@ -1,107 +1,91 @@
 import streamlit as st
-import pandas as pd
 
-st.set_page_config(
-    page_title="조주기능사 칵테일 추천",
-    page_icon="🍸",
-    layout="wide"
-)
-
-st.title("🍸 조주기능사 칵테일 정보 및 디저트 페어링")
+st.title("🍸 조주기능사 칵테일 학습")
 
 cocktails = {
-    "Dry Martini": {
-        "조주법": "Stir",
-        "재료": "Gin, Dry Vermouth",
-        "디저트": "레몬 타르트",
-        "설명": "드라이하고 깔끔한 맛이 레몬 타르트의 상큼함과 잘 어울립니다."
+    "Vodka": {
+        "Bloody Mary": {
+            "조주법": "Build",
+            "가니쉬": "Lemon, Celery",
+            "레시피": [
+                "Vodka 1 1/2oz",
+                "Tomato Juice",
+                "Worcestershire Sauce",
+                "Tabasco"
+            ],
+            "디저트": "토마토 타르트",
+            "설명": "토마토 풍미를 자연스럽게 연결"
+        },
+
+        "Cosmopolitan": {
+            "조주법": "Shake",
+            "가니쉬": "Lemon Twist",
+            "레시피": [
+                "Vodka 1oz",
+                "Triple Sec 1/2oz",
+                "Lime Juice 1/2oz",
+                "Cranberry Juice 1/2oz"
+            ],
+            "디저트": "베리 치즈케이크",
+            "설명": "크랜베리 향과 베리류 디저트가 잘 어울림"
+        }
     },
 
-    "Manhattan": {
-        "조주법": "Stir",
-        "재료": "Bourbon Whiskey, Sweet Vermouth",
-        "디저트": "다크 초콜릿 브라우니",
-        "설명": "위스키의 바닐라 향과 초콜릿의 풍미가 훌륭한 조화를 이룹니다."
+    "Rum": {
+        "Daiquiri": {
+            "조주법": "Shake",
+            "가니쉬": "없음",
+            "레시피": [
+                "Light Rum 1 3/4oz",
+                "Lime Juice 3/4oz",
+                "Sugar"
+            ],
+            "디저트": "코코넛 마카롱",
+            "설명": "열대과일 향과 좋은 조화"
+        }
     },
 
-    "Old Fashioned": {
-        "조주법": "Build",
-        "재료": "Bourbon Whiskey, Sugar, Bitters",
-        "디저트": "피칸 파이",
-        "설명": "카라멜과 견과류 풍미가 위스키와 잘 어울립니다."
-    },
-
-    "Margarita": {
-        "조주법": "Shake",
-        "재료": "Tequila, Triple Sec, Lime Juice",
-        "디저트": "치즈케이크",
-        "설명": "라임의 산미가 치즈케이크의 진한 맛을 깔끔하게 정리해줍니다."
-    },
-
-    "Daiquiri": {
-        "조주법": "Shake",
-        "재료": "Rum, Lime Juice, Sugar",
-        "디저트": "코코넛 마카롱",
-        "설명": "럼과 코코넛의 열대과일 향이 자연스럽게 이어집니다."
-    },
-
-    "Cosmopolitan": {
-        "조주법": "Shake",
-        "재료": "Vodka, Triple Sec, Lime Juice, Cranberry Juice",
-        "디저트": "베리 타르트",
-        "설명": "크랜베리와 베리류의 과일 향이 잘 어울립니다."
-    },
-
-    "Pina Colada": {
-        "조주법": "Blend",
-        "재료": "Rum, Pineapple Juice, Coconut Cream",
-        "디저트": "코코넛 케이크",
-        "설명": "코코넛 향을 극대화하여 열대풍 느낌을 살려줍니다."
-    },
-
-    "Mai-Tai": {
-        "조주법": "Blend",
-        "재료": "Rum, Triple Sec, Fruit Juice",
-        "디저트": "파인애플 업사이드 다운 케이크",
-        "설명": "열대과일 풍미가 칵테일과 완벽하게 어울립니다."
-    },
-
-    "Whiskey Sour": {
-        "조주법": "Shake",
-        "재료": "Whiskey, Lemon Juice, Sugar",
-        "디저트": "레몬 파운드 케이크",
-        "설명": "상큼한 산미가 칵테일과 좋은 밸런스를 만듭니다."
-    },
-
-    "Long Island Iced Tea": {
-        "조주법": "Build",
-        "재료": "5대 증류주 + Cola",
-        "디저트": "뉴욕 치즈케이크",
-        "설명": "진한 알코올감과 치즈케이크의 묵직함이 균형을 이룹니다."
+    "Gin": {
+        "Dry Martini": {
+            "조주법": "Stir",
+            "가니쉬": "Olive",
+            "레시피": [
+                "Dry Gin 2oz",
+                "Dry Vermouth 1/3oz"
+            ],
+            "디저트": "레몬 타르트",
+            "설명": "깔끔한 드라이함과 상큼한 산미"
+        }
     }
 }
 
-selected = st.selectbox(
-    "칵테일을 선택하세요",
+base = st.selectbox(
+    "베이스 주종 선택",
     list(cocktails.keys())
 )
 
-info = cocktails[selected]
+recipe = st.selectbox(
+    "칵테일 선택",
+    list(cocktails[base].keys())
+)
 
-st.subheader(f"🍹 {selected}")
+info = cocktails[base][recipe]
 
-col1, col2 = st.columns(2)
+st.subheader(f"🍹 {recipe}")
 
-with col1:
-    st.metric("조주법", info["조주법"])
+st.write("### 조주법")
+st.success(info["조주법"])
 
-with col2:
-    st.metric("추천 디저트", info["디저트"])
+st.write("### 가니쉬")
+st.info(info["가니쉬"])
 
-st.markdown("---")
+st.write("### 레시피")
 
-st.write("### 주요 재료")
-st.info(info["재료"])
+for item in info["레시피"]:
+    st.write(f"• {item}")
 
-st.write("### 디저트 페어링 설명")
-st.success(info["설명"])
+st.write("### 추천 디저트")
+st.warning(info["디저트"])
+
+st.write("### 페어링 설명")
+st.write(info["설명"])
