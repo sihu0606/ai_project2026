@@ -1,91 +1,67 @@
 import streamlit as st
+import pandas as pd
 
-st.title("🍸 조주기능사 칵테일 학습")
+st.set_page_config(
+    page_title="조주기능사 칵테일 가이드",
+    page_icon="🍸",
+    layout="wide"
+)
 
-cocktails = {
-    "Vodka": {
-        "Bloody Mary": {
-            "조주법": "Build",
-            "가니쉬": "Lemon, Celery",
-            "레시피": [
-                "Vodka 1 1/2oz",
-                "Tomato Juice",
-                "Worcestershire Sauce",
-                "Tabasco"
-            ],
-            "디저트": "토마토 타르트",
-            "설명": "토마토 풍미를 자연스럽게 연결"
-        },
+@st.cache_data
+def load_data():
+    return pd.read_csv("cocktail_recipes.csv")
 
-        "Cosmopolitan": {
-            "조주법": "Shake",
-            "가니쉬": "Lemon Twist",
-            "레시피": [
-                "Vodka 1oz",
-                "Triple Sec 1/2oz",
-                "Lime Juice 1/2oz",
-                "Cranberry Juice 1/2oz"
-            ],
-            "디저트": "베리 치즈케이크",
-            "설명": "크랜베리 향과 베리류 디저트가 잘 어울림"
-        }
-    },
+df = load_data()
 
-    "Rum": {
-        "Daiquiri": {
-            "조주법": "Shake",
-            "가니쉬": "없음",
-            "레시피": [
-                "Light Rum 1 3/4oz",
-                "Lime Juice 3/4oz",
-                "Sugar"
-            ],
-            "디저트": "코코넛 마카롱",
-            "설명": "열대과일 향과 좋은 조화"
-        }
-    },
-
-    "Gin": {
-        "Dry Martini": {
-            "조주법": "Stir",
-            "가니쉬": "Olive",
-            "레시피": [
-                "Dry Gin 2oz",
-                "Dry Vermouth 1/3oz"
-            ],
-            "디저트": "레몬 타르트",
-            "설명": "깔끔한 드라이함과 상큼한 산미"
-        }
-    }
-}
+st.title("🍸 조주기능사 칵테일 & 디저트 페어링")
 
 base = st.selectbox(
     "베이스 주종 선택",
-    list(cocktails.keys())
+    sorted(df["베이스"].unique())
 )
 
-recipe = st.selectbox(
+filtered = df[df["베이스"] == base]
+
+cocktail = st.selectbox(
     "칵테일 선택",
-    list(cocktails[base].keys())
+    sorted(filtered["칵테일"].tolist())
 )
 
-info = cocktails[base][recipe]
+info = filtered[filtered["칵테일"] == cocktail].iloc[0]
 
-st.subheader(f"🍹 {recipe}")
+col1, col2 = st.columns(2)
 
-st.write("### 조주법")
-st.success(info["조주법"])
+with col1:
+    st.metric("조주법", info["조주법"])
 
-st.write("### 가니쉬")
-st.info(info["가니쉬"])
+with col2:
+    st.metric("가니쉬", info["가니쉬"])
 
-st.write("### 레시피")
+st.divider()
 
-for item in info["레시피"]:
-    st.write(f"• {item}")
+st.subheader("🥃 레시피")
 
-st.write("### 추천 디저트")
-st.warning(info["디저트"])
+recipe_cols = [
+    "재료1",
+    "재료2",
+    "재료3",
+    "재료4",
+    "재료5",
+    "재료6"
+]
 
-st.write("### 페어링 설명")
-st.write(info["설명"])
+for col in recipe_cols:
+    value = info[col]
+
+    if pd.notna(value) and str(value).strip() != "":
+        st.write(f"• {value}")
+
+st.divider()
+
+st.subheader("🍰 추천 디저트")
+
+st.success(info["디저트"])
+
+st.subheader("📖 페어링 설명")
+
+st.info(info["페어링설명"])
