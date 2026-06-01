@@ -612,22 +612,45 @@ st.info(info["설명"])
 
 st.divider()
 
+st.divider()
+
 st.subheader("🎯 조주법 퀴즈")
 
 all_cocktails = []
+
 for category in cocktails.values():
     for name, data in category.items():
-        all_cocktails.append((name, data["조주법"]))
+        all_cocktails.append(
+            {
+                "name": name,
+                "method": data["조주법"]
+            }
+        )
 
-question = random.choice(all_cocktails)
+# 최초 1회만 문제 생성
+if "quiz" not in st.session_state:
+    st.session_state.quiz = random.choice(all_cocktails)
+
+question = st.session_state.quiz
 
 answer = st.selectbox(
-    f"{question[0]}의 조주법은?",
-    ["Build", "Shake", "Stir", "Blend", "Float", "Shake/Build", "Build/Float"]
+    f"{question['name']}의 조주법은?",
+    ["Build", "Shake", "Stir", "Blend", "Float", "Shake/Build", "Build/Float"],
+    key="quiz_answer"
 )
 
-if st.button("정답 확인"):
-    if answer == question[1]:
-        st.success("정답입니다! 🎉")
-    else:
-        st.error(f"오답입니다. 정답은 {question[1]} 입니다.")
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("정답 확인"):
+        if answer == question["method"]:
+            st.success("정답입니다! 🎉")
+        else:
+            st.error(
+                f"오답입니다. 정답은 {question['method']} 입니다."
+            )
+
+with col2:
+    if st.button("다음 문제"):
+        st.session_state.quiz = random.choice(all_cocktails)
+        st.rerun()
